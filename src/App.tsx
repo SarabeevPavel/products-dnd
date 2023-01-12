@@ -61,6 +61,8 @@ function App() {
 
   const [activeId, setActiveId] = useState(null)
 
+  const [over, setOver] = useState(null)
+
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
@@ -71,29 +73,12 @@ function App() {
   const handleDragCancel = () => setActiveId(null)
   const handleDragOver = ({ active, over }: any) => {
     const overId = over?.id
-
     if (!overId) return
 
     const activeContainer = active.data.current.sortable.containerId
     const overContainer = over.data.current?.sortable.containerId || over.id
-
-    if (activeContainer !== overContainer) {
-      setDishGroups((dishGroups) => {
-        const activeIndex = active.data.current.sortable.index
-        const overIndex =
-          over.id in dishGroups
-            ? dishGroups[overContainer].length + 1
-            : over.data.current.sortable.index
-        return moveBetweenContainers(
-          dishGroups,
-          activeContainer,
-          activeIndex,
-          overContainer,
-          overIndex,
-          active.id
-        )
-      })
-    }
+    if (activeContainer === overContainer) return
+    setOver(overContainer)
   }
 
   const handleDragEnd = ({ active, over }: any) => {
@@ -136,6 +121,7 @@ function App() {
       })
     }
     setActiveId(null)
+    setOver(null)
   }
 
   const moveBetweenContainers = (
@@ -172,9 +158,9 @@ function App() {
               {Object.keys(dishGroups).map((group) => (
                 <Board
                   id={group}
-                  title={group}
                   dishes={dishGroups[group]}
                   activeId={activeId}
+                  over={over}
                   key={group}
                 />
               ))}
