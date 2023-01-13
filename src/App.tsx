@@ -19,96 +19,32 @@ import { Item } from "./components/Item"
 import { Header } from "./components/Header"
 import { InfoBar } from "./components/InfoBar"
 import data from "./data/data.json"
+import { useDefaultSensors } from "./hooks/useDefaultSensors"
+import {
+  handleDragCancel,
+  handleDragEnd,
+  handleDragOver,
+  handleDragStart,
+} from "./utils/handlers"
 
 function App() {
   const [dishGroups, setDishGroups] = useState<Record<string, string[]>>(data)
 
-  const [activeId, setActiveId] = useState(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
-  const [over, setOver] = useState(null)
+  const [over, setOver] = useState<string | null>(null)
 
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
+  const sensors = useDefaultSensors()
 
-  const handleDragStart = ({ active }: any) => setActiveId(active.id)
-  const handleDragCancel = () => setActiveId(null)
-  const handleDragOver = ({ active, over }: any) => {
-    const overId = over?.id
-    if (!overId) return
-
-    const activeContainer = active.data.current.sortable.containerId
-    const overContainer = over.data.current?.sortable.containerId || over.id
-    if (activeContainer === overContainer) return
-    setOver(overContainer)
-  }
-
-  const handleDragEnd = ({ active, over }: any) => {
-    if (!over) {
-      setActiveId(null)
-      return
-    }
-
-    if (active.id !== over.id) {
-      const activeContainer = active.data.current.sortable.containerId
-      const overContainer = over.data.current?.sortable.containerId || over.id
-      const activeIndex = active.data.current.sortable.index
-      const overIndex =
-        over.id in dishGroups
-          ? dishGroups[overContainer].length + 1
-          : over.data.current.sortable.index
-      setDishGroups((dishGroups) => {
-        let newDishes
-        if (activeContainer === overContainer) {
-          newDishes = {
-            ...dishGroups,
-            [overContainer]: arrayMove(
-              dishGroups[overContainer],
-              activeIndex,
-              overIndex
-            ),
-          }
-        } else {
-          newDishes = moveBetweenContainers(
-            dishGroups,
-            activeContainer,
-            activeIndex,
-            overContainer,
-            overIndex,
-            active.id
-          )
-        }
-
-        return newDishes
-      })
-    }
-    setActiveId(null)
-    setOver(null)
-  }
-
-  const moveBetweenContainers = (
-    items: Record<string, string[]>,
-    activeContainer: string,
-    activeIndex: number,
-    overContainer: string,
-    overIndex: number,
-    item: string
-  ) => {
-    return {
-      ...items,
-      [activeContainer]: removeAtIndex(items[activeContainer], activeIndex),
-      [overContainer]: insertAtIndex(items[overContainer], overIndex, item),
-    }
-  }
   return (
     <DndContext
       sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragCancel={handleDragCancel}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
+      onDragStart={(e) => handleDragStart(e, setActiveId)}
+      onDragCancel={() => handleDragCancel(setActiveId)}
+      onDragOver={(e) => handleDragOver(e, setOver)}
+      onDragEnd={(e) =>
+        handleDragEnd(e, setActiveId, setDishGroups, setOver, dishGroups)
+      }
     >
       <main className="py-10 flex flex-col justify-center items-center bg-light-grey">
         <section className="w-3/4 h-2/3">
