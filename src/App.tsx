@@ -1,19 +1,6 @@
 import { useState } from "react"
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core"
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
-import {
-  arrayMove,
-  insertAtIndex,
-  removeAtIndex,
-} from "./utils/arrayOperations"
+import { DndContext, DragOverlay } from "@dnd-kit/core"
+
 import { Board } from "./components/Board"
 import { Item } from "./components/Item"
 import { Header } from "./components/Header"
